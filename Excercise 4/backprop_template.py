@@ -1,5 +1,3 @@
-import numpy as np
-
 """
 =============================================================================
     Eindhoven University of Technology
@@ -49,7 +47,7 @@ Keep the following points in mind:
 """
 
 
-# import libraries
+import numpy as np
 
 
 """
@@ -218,7 +216,7 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    bce = -y*np.log(p)+(1-y)*np.log(1-p)
+    bce = -1/len(y)*sum(y*np.log(p)+(1-y)*np.log(1-p))
     # return BCE
     return bce
 
@@ -267,7 +265,7 @@ def dReLU_da(a):
                     'a'
     """
     # calculate dh_da
-    if a >= 0:
+    if a > 0:
         dh_da = 1
     else:
         dh_da = 0
@@ -310,9 +308,9 @@ def Dense(h, w, b):
             w - Linear weights of the Dense layer formatted as a Numpy array
                 containing only real values with shape (K x M)
             b - Bias weights of the Dense layer formatted as a Numpy array
-                containing only real values with shape (...)
+                containing only real values with shape (K x 1)
     Output: a - Output of the Dense layer formatted as a Numpy array containing
-                only real values with 2D shape (...)
+                only real values with 2D shape (K x N)
     """
     # calculate a
     a = w @ h + b  #* np.eye(w.shape[0], h.shape[1])
@@ -331,7 +329,9 @@ def ReLU(a):
                 with the same shape as input 'a'
     """
     # calculate h
-    h = max(0, a)
+    h = []
+    for i in a:
+        h.append(max(0, i))
 
     # return h
     return h
