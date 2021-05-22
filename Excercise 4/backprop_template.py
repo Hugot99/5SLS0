@@ -96,13 +96,13 @@ def forward_pass(X, y, theta, depth):
     """
 
     # create the initial dictionary 'h' with as key "h0", corresponding to X
-    ...
+    h = {"h0": X}
 
     # create the initial dictionary 'a' without any entries
-    ...
+    a = {}
 
     # loop through layers
-    for k in ...:
+    for k in range(1, depth):
 
         # calculate the next output after another Dense layer and append this
         # to the dictionary 'a' using the key "a{index}" without brackets and
@@ -110,7 +110,7 @@ def forward_pass(X, y, theta, depth):
         # http://www.deeplearningbook.org/contents/mlp.html
         # important:    use the previously defined Dense function in the
         #               calculation!
-        ...
+        a["a"+str(k)] = Dense(h["h"+str(k-1)], theta["w"+str(k)], theta["b"+str(k)])
 
         # calculate the next output after another activation layer and append
         # this to the dictionary 'h' using the key "h{index}" without brackets
@@ -118,16 +118,20 @@ def forward_pass(X, y, theta, depth):
         # http://www.deeplearningbook.org/contents/mlp.html
         # important:    use the previously defined ReLU/Sigmoid function in the
         #               calculation!
-        ...
+        if k == depth/2:
+            h["h" + str(k)] = Sigmoid(a["a" + str(k)])      # We need at least one hidden layer with any “squashing” activation function
+
+        else:
+            h["h"+str(k)] = ReLU(a["a"+str(k)])
 
     # determine the value of 'p', which is the estimated output
-    ...
+    p = a["a"+str(depth)]   # a as the last Dense layer does not have an activation function
 
     # calculate the cost function 'J' (= BCE between the
     # ground-truth 'y' and the estimated output 'p')
     # important:    use the previously defined BCE function in the
     #               calculation!
-    ...
+    J = BCE(y, p)
 
     # return the cost function 'J', the estimated output 'p', and the
     # intermediate outputs 'h' and 'a'
@@ -161,16 +165,18 @@ def backwards_pass(y, theta, h, a):
     """
 
     # initialize an empty dictionary for the gradients called 'gradients'
-    ...
+    gradients = {}
 
     # compute the gradient 'g' on the output layer, i.e. the gradient of the
     # cost function with respect to the estimated output
     # important:    use the previously defined dBCE_dphat function in the
     #               calculation!
-    ...
+    depth = len(a)
+    p = Dense(h["h"+str(depth-1)], theta["w"+str(depth)], theta["b"+str(depth)])
+    g = dBCE_dphat(y, p)
 
     # loop through all layers in a backwards manner
-    for k in ...:
+    for k in reversed(range(1, depth-1):
 
         # convert the gradient on the layer's output into a gradient on the
         # previous activation function. Keep in mind that the last layer does
