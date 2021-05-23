@@ -176,7 +176,7 @@ def backwards_pass(y, theta, h, a):
     g = dBCE_dphat(y, p)
 
     # loop through all layers in a backwards manner
-    for k in reversed(range(1, depth-1):
+    for k in reversed(range(1, depth-1)):
 
         # convert the gradient on the layer's output into a gradient on the
         # previous activation function. Keep in mind that the last layer does
@@ -222,9 +222,8 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    bce = -1/len(y)*sum(y*np.log(p)+(1-y)*np.log(1-p))
-    # return BCE
-    return bce
+    BCE = -(y@np.log(p) + (1-y)@np.log(1-p))
+    return BCE
 
 
 def dBCE_dphat(y, p):
@@ -246,7 +245,10 @@ def dBCE_dphat(y, p):
                             same shape as the estimated value 'phat'
     """
     # calculate derivative of BCE
-    dbce_dphat = -y/p-(1-y)/(1-p)
+    dbce_dphat = 0
+    for i in range(len(y)):
+        dbce_dphat_1 = -y[i] / p[i] - (1 - y[i]) / (1 - p[i])
+        dbce_dphat = dbce_dphat + dbce_dphat_1
     # return derivative of BCE
     return dbce_dphat
 
@@ -292,8 +294,7 @@ def dSigmoid_da(a):
                     input 'a'
     """
     # calculate dh_da
-    dh_da = np.exp(-a)/(1+np.exp(-a))**2
-
+    np.exp(-a) / (1 + np.exp(-a)) ** 2
     # return dh_da
     return dh_da
 
@@ -336,10 +337,10 @@ def ReLU(a):
     """
     # calculate h
     h = []
+
     for i in a:
         h.append(max(0, i))
-
-    # return h
+    h = np.array(h)
     return h
 
 
