@@ -118,7 +118,7 @@ def forward_pass(X, y, theta, depth):
         # http://www.deeplearningbook.org/contents/mlp.html
         # important:    use the previously defined ReLU/Sigmoid function in the
         #               calculation!
-        if k == depth/2:
+        if k == 1:
             h["h" + str(k)] = Sigmoid(a["a" + str(k)])      # We need at least one hidden layer with any “squashing” activation function
 
         else:
@@ -176,7 +176,7 @@ def backwards_pass(y, theta, h, a):
     g = dBCE_dphat(y, p)
 
     # loop through all layers in a backwards manner
-    for k in reversed(range(1, depth-1)):
+    for k in reversed(range(1, depth)):
 
         # convert the gradient on the layer's output into a gradient on the
         # previous activation function. Keep in mind that the last layer does
@@ -185,6 +185,7 @@ def backwards_pass(y, theta, h, a):
         # important:    use the previously defined dReLU_da function in the
         #               calculation!
         ...
+
 
         # compute the gradients on the weights and biases of the previous Dense
         # layer and save them in the dictionary 'gradients' with the syntax as
@@ -222,8 +223,8 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    BCE = -(y@np.log(p) + (1-y)@np.log(1-p))
-    return BCE
+    bce = -1/len(y)*sum(y*np.log(p)+(1-y)*np.log(1-p))
+    return bce
 
 
 def dBCE_dphat(y, p):
@@ -336,11 +337,11 @@ def ReLU(a):
                 with the same shape as input 'a'
     """
     # calculate h
-    h = []
+    h = np.array([])
 
     for i in a:
         h.append(max(0, i))
-    h = np.array(h)
+    # return h
     return h
 
 
