@@ -12,7 +12,7 @@ from copy import deepcopy
                     e.g.
                         Tim-de_Jong-0123456.py
                         Pieter-Jansen-2589631.py
-    Author        : ...
+    Author        : Quinten Swaan and Hugo Thelosen
     Date          : ...
 
 ==============================================================================
@@ -458,26 +458,32 @@ class optimizer():
         # check if the variable 'self.accs1' exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if hasattr(self, 'accs1'):
 
             # create the dict 'self.accs1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.accs1 = ...
+            self.accs1 = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.accs1[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.accs1["w" + str(key)] = 0
+                self.accs1["b" + str(key)] = 0
 
         # loop throught the dictionary of weigths
-        for key in ...:
+        for key in range(1, int(len(self.theta) / 2)):
             # update accumulated squared first order moment
-            self.accs1[key] = ...
-
+            self.accs1["w" + str(key)] = self.accs1["w" + str(key)] + gradients["dJ_dw" + str(key)] @ gradients[
+                "w" + str(key)]
+            self.accs1["b" + str(key)] = self.accs1["b" + str(key)] + gradients["dJ_db" + str(key)] @ gradients[
+                "b" + str(key)]
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
-            self.theta[key] = ...
+            lr = self.parameters["lr"]
+            delta = self.parameters["delta"]
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) @ gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) @ gradients["dJ_db" + str(key)]
 
     def RMSprop(self, gradients):
         """
@@ -512,26 +518,32 @@ class optimizer():
         # check if the variable 'self.accs1' exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if hasattr(self, 'accs1'):
 
             # create the dict 'self.accs1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.accs1 = ...
+            self.accs1 = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.accs1[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.accs1["w" + str(key)] = 0
+                self.accs1["b" + str(key)] = 0
 
         # loop throught the dictionary of weigths
-        for key in ...:
+        for key in range(1, int(len(self.theta) / 2)):
             # update accumulated squared first order moment
-            self.accs1[key] = ...
+            rho = self.parameters["rho"]
+            self.accs1["w" + str(key)] = rho * self.accs1["w" + str(key)] + (1 - rho) @ gradients["dJ_dw" + str(key)] @ gradients["dJ_dw" + str(key)]
+            self.accs1["b" + str(key)] = rho * self.accs1["b" + str(key)] + (1 - rho) @ gradients["dJ_db" + str(key)] @ gradients["dJ_db" + str(key)]
 
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
-            self.theta[key] = ...
+            lr = self.parameters["lr"]
+            delta = self.parameters["delta"]
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) @ gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) @ gradients["dJ_db" + str(key)]
 
     def Adam(self, gradients):
         """
