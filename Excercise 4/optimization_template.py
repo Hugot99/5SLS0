@@ -169,19 +169,19 @@ class optimizer():
 
         # create the class variable depth by copying the same passed input
         # variable
-        self.depth = ...
+        self.depth = depth
 
         # create the class variable theta_init by copying the same passed
         # input argument (keep in mind that copying dictionaries is not the
         # same as copying variables! Use the imported deepcopy
         # function for this purpose)
-        self.theta_init = ...
+        self.theta_init = theta_init
 
         # create the class variable theta by initializing it with the initial
         # passed values of theta_init (keep in mind that copying dictionaries
         # is not the same as copying variables! Use the imported deepcopy
         # function for this purpose)
-        self.theta = ...
+        self.theta = theta_init
 
     def reset_weights(self):
         """
@@ -207,7 +207,7 @@ class optimizer():
         # reset the dictionary containing the model weights by resetting them
         # to the initial values. (Hint: recall that self.theta_init contains
         # the initial model weights)
-        self.theta = ...
+        self.theta = self.theta_init
 
     def specify_optimizer(self, algorithm, parameters):
         """
@@ -273,13 +273,13 @@ class optimizer():
 
         # create the class variable 'algorithm' specifying the algorithm used
         # as a string
-        self.algorithm = ...
+        self.algorithm = algorithm
 
         # create the class variable 'parameters' containing the dictionary with
         # hyperparameters passed to function (keep in mind that copying
         # dictionaries is not the same as copying variables! Use the imported
         # deepcopy function for this purpose)
-        self.parameters = ...
+        self.parameters = deepcopy(parameters)
 
     def optimize_weights(self, gradients):
         """
@@ -310,34 +310,34 @@ class optimizer():
         # corresponding optimizer function as defined below.
 
         # check if the specified algorithm is "SGD"
-        if ...:
+        if self.algorithm == "SGD":
 
             # call the "SGD" optimizer
-            ...
+            self.SGD(gradients)
 
         # check if the specified algorithm is "SGDmomentum"
-        elif ...:
+        elif self.algorithm == "SGDmomentum":
 
             # call the "SGDmomentum" optimizer
-            ...
+            self.SGDmomentum(gradients)
 
         # check if the specified algorithm is "AdaGrad"
-        elif ...:
+        elif self.algorithm == "AdaGrad":
 
-            # call the "Adagrad" optimizer
-            ...
+            # call the "AdaGrad" optimizer
+            self.AdaGrad(gradients)
 
         # check if the specified algorithm is "RMSprop"
-        elif ...:
+        elif self.algorithm == "RMSprop":
 
             # call the "RMSprop" optimizer
-            ...
+            self.RMSprop(gradients)
 
         # check if the specified algorithm is "Adam"
-        elif ...:
+        elif self.algorithm == "Adam":
 
             # call the "Adam" optimizer
-            ...
+            self.Adam(gradients)
 
     def SGD(self, gradients):
         """
