@@ -401,7 +401,7 @@ class optimizer():
         # check if the variable 'self.acc1' exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if hasattr(self, 'acc1'):
+        if not hasattr(self, 'acc1'):
 
             # create the dict 'self.acc1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
@@ -458,7 +458,7 @@ class optimizer():
         # check if the variable 'self.accs1' exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if hasattr(self, 'accs1'):
+        if not hasattr(self, 'accs1'):
 
             # create the dict 'self.accs1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
@@ -474,16 +474,16 @@ class optimizer():
         # loop throught the dictionary of weigths
         for key in range(1, int(len(self.theta) / 2)):
             # update accumulated squared first order moment
-            self.accs1["w" + str(key)] = self.accs1["w" + str(key)] + gradients["dJ_dw" + str(key)] @ gradients[
+            self.accs1["w" + str(key)] = self.accs1["w" + str(key)] + gradients["dJ_dw" + str(key)] * gradients[
                 "w" + str(key)]
-            self.accs1["b" + str(key)] = self.accs1["b" + str(key)] + gradients["dJ_db" + str(key)] @ gradients[
+            self.accs1["b" + str(key)] = self.accs1["b" + str(key)] + gradients["dJ_db" + str(key)] * gradients[
                 "b" + str(key)]
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
             lr = self.parameters["lr"]
             delta = self.parameters["delta"]
-            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) @ gradients["dJ_dw" + str(key)]
-            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) @ gradients["dJ_db" + str(key)]
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) * gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) * gradients["dJ_db" + str(key)]
 
     def RMSprop(self, gradients):
         """
@@ -518,7 +518,7 @@ class optimizer():
         # check if the variable 'self.accs1' exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if hasattr(self, 'accs1'):
+        if not hasattr(self, 'accs1'):
 
             # create the dict 'self.accs1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
@@ -535,15 +535,15 @@ class optimizer():
         for key in range(1, int(len(self.theta) / 2)):
             # update accumulated squared first order moment
             rho = self.parameters["rho"]
-            self.accs1["w" + str(key)] = rho * self.accs1["w" + str(key)] + (1 - rho) @ gradients["dJ_dw" + str(key)] @ gradients["dJ_dw" + str(key)]
-            self.accs1["b" + str(key)] = rho * self.accs1["b" + str(key)] + (1 - rho) @ gradients["dJ_db" + str(key)] @ gradients["dJ_db" + str(key)]
+            self.accs1["w" + str(key)] = rho * self.accs1["w" + str(key)] + (1 - rho) @ gradients["dJ_dw" + str(key)] * gradients["dJ_dw" + str(key)]
+            self.accs1["b" + str(key)] = rho * self.accs1["b" + str(key)] + (1 - rho) @ gradients["dJ_db" + str(key)] * gradients["dJ_db" + str(key)]
 
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
             lr = self.parameters["lr"]
             delta = self.parameters["delta"]
-            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) @ gradients["dJ_dw" + str(key)]
-            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) @ gradients["dJ_db" + str(key)]
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) * gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) * gradients["dJ_db" + str(key)]
 
     def Adam(self, gradients):
         """
@@ -601,92 +601,106 @@ class optimizer():
         # check if the variable 'self.acc1 exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if not hasattr(self, 'acc1'):
 
             # create the dict 'self.acc1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.acc1 = ...
+            self.acc1 = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.acc1[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.acc1["w" + str(key)] = 0
+                self.acc1["b" + str(key)] = 0
 
         # check if the variable 'self.acc2 exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if not hasattr(self, 'acc2'):
 
             # create the dict 'self.acc2' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.acc2 = ...
+            self.acc2 = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.acc2[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.acc2["w" + str(key)] = 0
+                self.acc2["b" + str(key)] = 0
 
         # check if the variable 'self.acc1b exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if not hasattr(self, 'acc1b'):
 
-            # create the dict 'self.acc1' with keys identical to the weights
+            # create the dict 'self.acc1b' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.acc1b = ...
+            self.acc1b = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.acc1b[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.acc1b["w" + str(key)] = 0
+                self.acc1b["b" + str(key)] = 0
 
         # check if the variable 'self.acc2b exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if not hasattr(self, 'acc2b'):
 
             # create the dict 'self.acc2b' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.acc2b = ...
+            self.acc2b = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.acc2b[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.acc2b["w" + str(key)] = 0
+                self.acc2b["b" + str(key)] = 0
 
         # initialize 'self.count' to 1 if it does not exist, else update the
         # counter by adding 1
-        if ...:
-            self.count = ...
+        if not hasattr(self, 'count'):
+            self.count = 1
         else:
-            self.count = ...
+            self.count = self.count + 1
+
+        rho1 = self.parameters["rho1"]
+        rho2 = self.parameters["rho2"]
+        delta = self.parameters["delta"]
+        lr = self.parameters["lr"]
 
         # loop throught the dictionary of weigths
-        for key in ...:
+        for key in range(1, int(len(self.theta) / 2)):
             # update accumulated first order moment (access the
             # hyperparameters, e.g. learning rate, through the specified
             # 'self.parameters')
-            self.acc1[key] = ...
+            self.acc1["w" + str(key)] = rho1*self.acc1["w" + str(key)] + (1-rho1)*gradients["dJ_dw" + str(key)]
+            self.acc1["b" + str(key)] = rho1*self.acc1["b" + str(key)] + (1-rho1)*gradients["dJ_db" + str(key)]
 
             # update accumulated first order moment (access the
             # hyperparameters, e.g. learning rate, through the specified
             # 'self.parameters')
-            self.acc2[key] = ...
+            self.acc2["w" + str(key)] = rho1*self.acc2["w" + str(key)] + (1-rho1)*gradients["dJ_dw" + str(key)] * gradients["dJ_dw" + str(key)]
+            self.acc2["b" + str(key)] = rho2*self.acc2["b" + str(key)] + (1-rho2)*gradients["dJ_db" + str(key)] * gradients["dJ_db" + str(key)]
 
             # calcluate bias corrected first order moment (access the
             # hyperparameters, e.g. learning rate, through the specified
             # 'self.parameters')
-            self.acc1b[key] = ...
+            self.acc1b["w" + str(key)] = self.acc1["w" + str(key)]/(1-rho1)
+            self.acc1b["b" + str(key)] = self.acc1["b" + str(key)]/(1-rho1)
 
             # calculate bias corrected second order moment (access the
             # hyperparameters, e.g. learning rate, through the specified
             # 'self.parameters')
-            self.acc2b[key] = ...
+            self.acc2b["w" + str(key)] = self.acc2["w" + str(key)]/(1-rho2)
+            self.acc2b["b" + str(key)] = self.acc2["b" + str(key)]/(1-rho2)
 
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
-            self.theta[key] = ...
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - lr/(delta + self.acc2b["w" + str(key)]**0.5) * self.acc1b["w" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - lr/(delta + self.acc2b["b" + str(key)]**0.5) * self.acc1b["b" + str(key)]
