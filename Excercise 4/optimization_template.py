@@ -18,7 +18,6 @@ from copy import deepcopy
 ==============================================================================
 """
 
-
 """
 ==============================================================================
                         Assignment optimization
@@ -41,7 +40,6 @@ Keep the following points in mind:
     - Do not change the names of the functions or their input/output arguments.
     - You are highly encouraged to test your script using a toy example.
 """
-
 
 # import libraries
 
@@ -91,7 +89,6 @@ def regularizer(gradients, theta, regtype, reglambda):
 
         # loop through gradients
         for key in ...:
-
             # update regularized gradients
             gradientsreg[key] = ...
 
@@ -100,7 +97,6 @@ def regularizer(gradients, theta, regtype, reglambda):
 
         # loop through gradients
         for key in ...:
-
             # update regularized gradients
             gradientsreg[key] = ...
 
@@ -363,11 +359,13 @@ class optimizer():
         """
 
         # loop throught the dictionary of weigths
-        for key in ...:
-
+        for key in range(1, int(len(self.theta) / 2)):
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
-            self.theta[key] = ...
+            lr = self.parameters["lr"]
+
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - lr * gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - lr * gradients["dJ_db" + str(key)]
 
     def SGDmomentum(self, gradients):
         """
@@ -403,21 +401,21 @@ class optimizer():
         # check if the variable 'self.acc1' exists, else create the variable
         # as a dictionary with keys indentical to the weights dictionary, but
         # with all values in the matrices set to 0.
-        if ...:
+        if hasattr(self, 'acc1'):
 
             # create the dict 'self.acc1' with keys identical to the weights
             # dictionary (keep in mind that copying dictionaries is not the
             # same as copying variables! Use the imported deepcopy
             # function for this purpose)
-            self.acc1 = ...
+            self.acc1 = deepcopy(self.theta)
 
             # initialize all values to similarly sized matrices of zeros
-            for key in ...:
-                self.acc1[key] = ...
+            for key in range(1, int(len(self.theta) / 2)):
+                self.acc1["w" + str(key)] = 0
+                self.acc1["b" + str(key)] = 0
 
         # loop throught the dictionary of weigths
-        for key in ...:
-
+        for key in range(1, int(len(self.theta) / 2)):
             # update accumulated first order moment (access the
             # hyperparameters, e.g. learning rate, through the specified
             # 'self.parameters')
@@ -474,7 +472,6 @@ class optimizer():
 
         # loop throught the dictionary of weigths
         for key in ...:
-
             # update accumulated squared first order moment
             self.accs1[key] = ...
 
@@ -529,7 +526,6 @@ class optimizer():
 
         # loop throught the dictionary of weigths
         for key in ...:
-
             # update accumulated squared first order moment
             self.accs1[key] = ...
 
@@ -659,7 +655,6 @@ class optimizer():
 
         # loop throught the dictionary of weigths
         for key in ...:
-
             # update accumulated first order moment (access the
             # hyperparameters, e.g. learning rate, through the specified
             # 'self.parameters')
