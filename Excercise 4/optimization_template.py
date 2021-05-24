@@ -13,7 +13,7 @@ from copy import deepcopy
                         Tim-de_Jong-0123456.py
                         Pieter-Jansen-2589631.py
     Author        : Quinten Swaan and Hugo Thelosen
-    Date          : ...
+    Date          : 24-05-2021
 
 ==============================================================================
 """
@@ -82,23 +82,25 @@ def regularizer(gradients, theta, regtype, reglambda):
     # be adopted according to the chosen regularization. (keep in mind that
     # copying dictionaries is not the same as copying variables! Use the
     # imported deepcopy function for this purpose)
-    gradientsreg = ...
+    gradientsreg = deepcopy(gradients)
 
     # check if regularization type is "l1"
-    if ...:
+    if regtype == "l1":
 
         # loop through gradients
-        for key in ...:
+        for key in range(1, int(len(gradients) / 2)):
             # update regularized gradients
-            gradientsreg[key] = ...
+            gradientsreg["dJ_dw" + str(key)] = gradients["dJ_dw" + str(key)] + reglambda*(theta["w" + str(key)] / abs(theta["w" + str(key)]))
+            gradientsreg["dJ_db" + str(key)] = gradients["dJ_db" + str(key)] + reglambda*(theta["b" + str(key)] / abs(theta["b" + str(key)]))
 
     # check if regularization type is "l2
-    elif ...:
+    elif regtype == "l2":
 
         # loop through gradients
-        for key in ...:
+        for key in range(1, int(len(gradients) / 2)):
             # update regularized gradients
-            gradientsreg[key] = ...
+            gradientsreg["dJ_dw" + str(key)] = gradients["dJ_dw" + str(key)] + reglambda*theta["w" + str(key)]
+            gradientsreg["dJ_db" + str(key)] = gradients["dJ_db" + str(key)] + reglambda*theta["b" + str(key)]
 
     return gradientsreg
 
@@ -475,9 +477,9 @@ class optimizer():
         for key in range(1, int(len(self.theta) / 2)):
             # update accumulated squared first order moment
             self.accs1["w" + str(key)] = self.accs1["w" + str(key)] + gradients["dJ_dw" + str(key)] * gradients[
-                "w" + str(key)]
+                "dJ_dw" + str(key)]
             self.accs1["b" + str(key)] = self.accs1["b" + str(key)] + gradients["dJ_db" + str(key)] * gradients[
-                "b" + str(key)]
+                "dJ_db" + str(key)]
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
             lr = self.parameters["lr"]
@@ -535,8 +537,8 @@ class optimizer():
         for key in range(1, int(len(self.theta) / 2)):
             # update accumulated squared first order moment
             rho = self.parameters["rho"]
-            self.accs1["w" + str(key)] = rho * self.accs1["w" + str(key)] + (1 - rho) @ gradients["dJ_dw" + str(key)] * gradients["dJ_dw" + str(key)]
-            self.accs1["b" + str(key)] = rho * self.accs1["b" + str(key)] + (1 - rho) @ gradients["dJ_db" + str(key)] * gradients["dJ_db" + str(key)]
+            self.accs1["w" + str(key)] = rho * self.accs1["w" + str(key)] + (1 - rho) * gradients["dJ_dw" + str(key)] * gradients["dJ_dw" + str(key)]
+            self.accs1["b" + str(key)] = rho * self.accs1["b" + str(key)] + (1 - rho) * gradients["dJ_db" + str(key)] * gradients["dJ_db" + str(key)]
 
             # update weights (access the hyperparameters, e.g. learning rate,
             # through the specified 'self.parameters')
