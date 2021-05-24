@@ -225,7 +225,7 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    bce = -1/np.size(y)*(y@np.log(p)+(1-y)@np.log(1-p))
+    bce = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - abs(p)))
     return bce
 
 
@@ -273,10 +273,7 @@ def dReLU_da(a):
                     'a'
     """
     # calculate dh_da
-    if a > 0:
-        dh_da = 1
-    else:
-        dh_da = 0
+    dh_da = 1 * (a > 0)
     # return dh_da
     return dh_da
 
@@ -320,7 +317,7 @@ def Dense(h, w, b):
                 only real values with 2D shape (K x N)
     """
     # calculate a
-    a = w @ h + b  #* np.eye(w.shape[0], h.shape[1])
+    a = w @ h + b
 
     # return a
     return a
