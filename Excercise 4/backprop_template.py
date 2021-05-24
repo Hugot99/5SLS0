@@ -102,7 +102,7 @@ def forward_pass(X, y, theta, depth):
     a = {}
 
     # loop through layers
-    for k in range(1, depth):
+    for k in range(depth):
 
         # calculate the next output after another Dense layer and append this
         # to the dictionary 'a' using the key "a{index}" without brackets and
@@ -110,7 +110,7 @@ def forward_pass(X, y, theta, depth):
         # http://www.deeplearningbook.org/contents/mlp.html
         # important:    use the previously defined Dense function in the
         #               calculation!
-        a["a"+str(k)] = Dense(h["h"+str(k-1)], theta["w"+str(k)], theta["b"+str(k)])
+        a["a"+str(k+1)] = Dense(h["h"+str(k)], theta["w"+str(k+1)], theta["b"+str(k+1)])
 
         # calculate the next output after another activation layer and append
         # this to the dictionary 'h' using the key "h{index}" without brackets
@@ -119,10 +119,10 @@ def forward_pass(X, y, theta, depth):
         # important:    use the previously defined ReLU/Sigmoid function in the
         #               calculation!
         if k == 1:
-            h["h" + str(k)] = Sigmoid(a["a" + str(k)])      # We need at least one hidden layer with any “squashing” activation function
+            h["h" + str(k+1)] = Sigmoid(a["a" + str(k+1)])      # We need at least one hidden layer with any “squashing” activation function
 
         else:
-            h["h"+str(k)] = ReLU(a["a"+str(k)])
+            h["h"+str(k+1)] = ReLU(a["a"+str(k+1)])
 
     # determine the value of 'p', which is the estimated output
     p = a["a"+str(depth)]   # a as the last Dense layer does not have an activation function
@@ -176,7 +176,7 @@ def backwards_pass(y, theta, h, a):
     g = dBCE_dphat(y, p)
 
     # loop through all layers in a backwards manner
-    for k in reversed(range(1, depth)):
+    for k in range(len(a), 0, -1):
 
         # convert the gradient on the layer's output into a gradient on the
         # previous activation function. Keep in mind that the last layer does
@@ -184,7 +184,8 @@ def backwards_pass(y, theta, h, a):
         # omitted. You can just update the value of 'g'
         # important:    use the previously defined dReLU_da function in the
         #               calculation!
-        ...
+        if k != depth:
+            g = g * dReLU_da(a[('a' + str(k))])
 
 
         # compute the gradients on the weights and biases of the previous Dense
@@ -193,11 +194,12 @@ def backwards_pass(y, theta, h, a):
         # calculated as dJ_da * da_db, where the second term is neglected in
         # the algorithm 6.4. However, for a correct operation, this term should
         # be determined in order to obtain a gradient with an adequate shape.
-        ...
+        gradients['dJ_db' + str(k)] = g @ np.ones(y.T.shape)
+        gradients['dJ_dw' + str(k)] = g @ h[('h' + str(k - 1))].T
 
         # propagate the gradient 'g' with respect to the next lower-level
         # activations functions and update 'g'
-        ...
+        g = theta[('w' + str(k))].T @ g
 
     # return gradients
     return gradients
@@ -223,7 +225,7 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    bce = -1/len(y)*sum(y*np.log(p)+(1-y)*np.log(1-p))
+    bce = -1/np.size(y)*(y@np.log(p)+(1-y)@np.log(1-p))
     return bce
 
 
@@ -246,10 +248,7 @@ def dBCE_dphat(y, p):
                             same shape as the estimated value 'phat'
     """
     # calculate derivative of BCE
-    dbce_dphat = 0
-    for i in range(len(y)):
-        dbce_dphat_1 = -y[i] / p[i] - (1 - y[i]) / (1 - p[i])
-        dbce_dphat = dbce_dphat + dbce_dphat_1
+    dbce_dphat = 1 / np.size(y) * -(y / p - (1 - y) / (1 - p))
     # return derivative of BCE
     return dbce_dphat
 
@@ -295,7 +294,7 @@ def dSigmoid_da(a):
                     input 'a'
     """
     # calculate dh_da
-    np.exp(-a) / (1 + np.exp(-a)) ** 2
+    dh_da = Sigmoid(a) * (1 - Sigmoid(a))
     # return dh_da
     return dh_da
 
@@ -337,11 +336,7 @@ def ReLU(a):
                 with the same shape as input 'a'
     """
     # calculate h
-    h = np.array([])
-
-    for i in a:
-        h.append(max(0, i))
-    # return h
+    h = np.maximum(0, a)
     return h
 
 
