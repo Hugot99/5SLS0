@@ -16,8 +16,8 @@
 import numpy as np
 import h5py
 
-# functions = __import__("Your submission file")
-functions = __import__("backprop_example")
+functions = __import__("backprop_template")
+# functions = __import__("backprop_example")
 
 
 def SGD(theta, gradients, lr, depth):

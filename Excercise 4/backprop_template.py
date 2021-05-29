@@ -96,7 +96,7 @@ def forward_pass(X, y, theta, depth):
     """
 
     # create the initial dictionary 'h' with as key "h0", corresponding to X
-    h = {"h0": X}
+    h = {'h0': X}
 
     # create the initial dictionary 'a' without any entries
     a = {}
@@ -110,7 +110,7 @@ def forward_pass(X, y, theta, depth):
         # http://www.deeplearningbook.org/contents/mlp.html
         # important:    use the previously defined Dense function in the
         #               calculation!
-        a["a"+str(k+1)] = Dense(h["h"+str(k)], theta["w"+str(k+1)], theta["b"+str(k+1)])
+        a['a'+str(k+1)] = Dense(h['h'+str(k)], theta['w'+str(k+1)], theta['b'+str(k+1)])
 
         # calculate the next output after another activation layer and append
         # this to the dictionary 'h' using the key "h{index}" without brackets
@@ -119,13 +119,13 @@ def forward_pass(X, y, theta, depth):
         # important:    use the previously defined ReLU/Sigmoid function in the
         #               calculation!
         if k == 1:
-            h["h" + str(k+1)] = Sigmoid(a["a" + str(k+1)])      # We need at least one hidden layer with any “squashing” activation function
+            h['h' + str(k+1)] = Sigmoid(a[('a' + str(k+1))])      # We need at least one hidden layer with any “squashing” activation function
 
         else:
-            h["h"+str(k+1)] = ReLU(a["a"+str(k+1)])
+            h['h'+str(k+1)] = ReLU(a[('a'+str(k+1))])
 
     # determine the value of 'p', which is the estimated output
-    p = a["a"+str(depth)]   # a as the last Dense layer does not have an activation function
+    p = h['h'+str(depth)]   # a as the last Dense layer does not have an activation function
 
     # calculate the cost function 'J' (= BCE between the
     # ground-truth 'y' and the estimated output 'p')
@@ -172,9 +172,9 @@ def backwards_pass(y, theta, h, a):
     # important:    use the previously defined dBCE_dphat function in the
     #               calculation!
     depth = len(a)
-    p = Dense(h["h"+str(depth-1)], theta["w"+str(depth)], theta["b"+str(depth)])
-    g = dBCE_dphat(y, p)
-
+    # p = Dense(h['h'+str(depth-1)], theta['w'+str(depth)], theta['b'+str(depth)])
+    # g = dBCE_dphat(y, p)
+    g = dBCE_dphat(y, h[('h' + str(len(h) - 1))])
     # loop through all layers in a backwards manner
     for k in range(len(a), 0, -1):
 
@@ -225,7 +225,7 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    bce = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - abs(p)))
+    bce = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
     return bce
 
 
@@ -333,6 +333,10 @@ def ReLU(a):
                 with the same shape as input 'a'
     """
     # calculate h
+    # if a > 0:
+    #     h = a
+    # else:
+    #     h = 0
     h = np.maximum(0, a)
     return h
 
