@@ -2,7 +2,6 @@
 =============================================================================
     Eindhoven University of Technology
 ==============================================================================
-
     Source Name   : Hugo-Thelosen-1257218.py
                     Use underscores '_' when your first/last name consists out
                     of multiple parts.
@@ -11,10 +10,8 @@
                         Pieter-Jansen-2589631.py
     Author        : ...
     Date          : ...
-
 ==============================================================================
 """
-
 
 """
 ==============================================================================
@@ -22,21 +19,14 @@
 ==============================================================================
 1.  Fill in your personal details at the top of the script and adjust the name
     of the script to specified format.
-
 2.  Complete the functions at the bottom of the script for the Dense layer
     and the ReLU and Sigmoid activation layers.
-
 3.  Complete the functions at the bottom of the script that calculate the
     derivatives of the ReLU and Sigmoid activation layers.
-
 4.  Complete the functions that calculate the BCE and its
     derivative.
-
 5.  Implement the forward pass of the backpropagation algorithm.
-
 6.  Implement the backwards pass of the backpropagation algorithm.
-
-
 Keep the following points in mind:
     - Do not import additional libraries besides numpy.
     - Do not create additional functions in this script.
@@ -45,10 +35,8 @@ Keep the following points in mind:
     - The outline of the algorithm is based on algorithm 6.3 and 6.4 at
       http://www.deeplearningbook.org/contents/mlp.html.
 """
-
-
+from numpy import *
 import numpy as np
-
 
 """
 ==============================================================================
@@ -58,7 +46,6 @@ import numpy as np
 
 
 def backprop(X, y, theta, depth):
-
     # perform a forward pass
     J, p, h, a = forward_pass(X, y, theta, depth)
 
@@ -71,7 +58,6 @@ def backprop(X, y, theta, depth):
 def forward_pass(X, y, theta, depth):
     """
     This function performs the forward pass of the backpropagation algorithm.
-
     Input:  X -     Input of the network
             y -     Ground-truth output of the network
             theta - Dictionary containing all estimated weights "w" and biases
@@ -110,7 +96,7 @@ def forward_pass(X, y, theta, depth):
         # http://www.deeplearningbook.org/contents/mlp.html
         # important:    use the previously defined Dense function in the
         #               calculation!
-        a['a'+str(k+1)] = Dense(h['h'+str(k)], theta['w'+str(k+1)], theta['b'+str(k+1)])
+        a['a' + str(k + 1)] = Dense(h['h' + str(k)], theta['w' + str(k + 1)], theta['b' + str(k + 1)])
 
         # calculate the next output after another activation layer and append
         # this to the dictionary 'h' using the key "h{index}" without brackets
@@ -119,13 +105,14 @@ def forward_pass(X, y, theta, depth):
         # important:    use the previously defined ReLU/Sigmoid function in the
         #               calculation!
         if k == 1:
-            h['h' + str(k+1)] = Sigmoid(a[('a' + str(k+1))])      # We need at least one hidden layer with any “squashing” activation function
+            h['h' + str(k + 1)] = Sigmoid(
+                a[('a' + str(k + 1))])  # We need at least one hidden layer with any “squashing” activation function
 
         else:
-            h['h'+str(k+1)] = ReLU(a[('a'+str(k+1))])
+            h['h' + str(k + 1)] = ReLU(a[('a' + str(k + 1))])
 
     # determine the value of 'p', which is the estimated output
-    p = h['h'+str(depth)]   # a as the last Dense layer does not have an activation function
+    p = h['h' + str(depth)]  # a as the last Dense layer does not have an activation function
 
     # calculate the cost function 'J' (= BCE between the
     # ground-truth 'y' and the estimated output 'p')
@@ -141,7 +128,6 @@ def forward_pass(X, y, theta, depth):
 def backwards_pass(y, theta, h, a):
     """
     This function performs the backwards pass of the backpropagation algorithm.
-
     Input:  y -     Ground-truth output of the network as an numpy array.
             theta - Dictionary containing all estimated weights "w" and biases
                     "b" of the network. The naming convention is from "w1" or
@@ -187,7 +173,6 @@ def backwards_pass(y, theta, h, a):
         if k != depth:
             g = g * dReLU_da(a[('a' + str(k))])
 
-
         # compute the gradients on the weights and biases of the previous Dense
         # layer and save them in the dictionary 'gradients' with the syntax as
         # specified above. Keep in mind that the derivative of dJ_db can be
@@ -216,7 +201,6 @@ def BCE(y, p):
     """
     This function returns the Binary Cross Entropy of the ground-truth 'y' and
     the estimated value 'p'.
-
     Input:  y -     Ground-truth output of the network, which is an arbitrarily
                     shaped Numpy array containing only real values
             p -     Estimated output of the network, which is an arbitrarily
@@ -225,7 +209,8 @@ def BCE(y, p):
                     estimated value 'p' as a single float
     """
     # calculate binary cross entropy
-    bce = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+    bce = -np.mean(y * np.log(p + 1e-12) + (1 - y) * np.log(1 - p + 1e-12))
     return bce
 
 
@@ -234,7 +219,6 @@ def dBCE_dphat(y, p):
     This function returns the derivative of the Binary Cross Entropy of the
     ground-truth 'y' and the estimated value 'p' with respect to the
     estimated value 'p'.
-
     Input:  y -             Ground-truth output of the network, which is an
                             arbitrarily shaped Numpy array containing only real
                             values
@@ -248,7 +232,7 @@ def dBCE_dphat(y, p):
                             same shape as the estimated value 'phat'
     """
     # calculate derivative of BCE
-    dbce_dphat = 1 / np.size(y) * -(y / p - (1 - y) / (1 - p))
+    dbce_dphat = 1 / np.size(y) * -(y / p + 1e-12 - (1 - y) / (1 - p - 1e-12))
     # return derivative of BCE
     return dbce_dphat
 
@@ -264,7 +248,6 @@ def dReLU_da(a):
     """
     This function returns the derivative of the output 'h' of a Rectified
     Linear Unit with respect to the input 'a'.
-
     Input:  a -     Input of the Rectified Linear Unit, which is an arbitrarily
                     shaped Numpy array containing only real values
     Output: dh_da - Derivative of the output 'h' of a Rectified Linear Unit
@@ -282,7 +265,6 @@ def dSigmoid_da(a):
     """
     This function returns the derivative of the output 'h' of a Sigmoidal
     activation layer with respect to the input 'a'.
-
     Input:  a -     Input of the Sigmoidal activation layer, which is an
                     arbitrarily shaped Numpy array containing only real values
     Output: dh_da - Derivative of the output 'h' of a Sigmoidal activation
@@ -306,7 +288,6 @@ def dSigmoid_da(a):
 def Dense(h, w, b):
     """
     This function returns the output of a Dense layer with bias.
-
     Input:  h - Input of the Dense layer formatted as a Numpy array containing
                 only real values with shape (M x N)
             w - Linear weights of the Dense layer formatted as a Numpy array
@@ -326,7 +307,6 @@ def Dense(h, w, b):
 def ReLU(a):
     """
     This function returns the output of a Rectified Linear Unit.
-
     Input:  a - Input of the Rectified Linear Unit, which is an arbitrarily
                 shaped Numpy array containing only real values
     Output: h - Output of the Rectified Linear Unit, which is a Numpy array
@@ -344,14 +324,13 @@ def ReLU(a):
 def Sigmoid(a):
     """
     This function returns the output of a Sigmoidal activation layer.
-
     Input:  a - Input of the Sigmoidal activation layer, which is an
                 arbitrarily shaped Numpy array containing only real values
     Output: h - Output of the Sigmoidal activation layer, which is a Numpy
                 array with the same shape as input 'a'
     """
     # calculate h
-    h = 1/(1+np.exp(-a))
+    h = 1 / (1 + np.exp(-a))
 
     # return h
     return h
