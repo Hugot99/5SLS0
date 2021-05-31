@@ -1,0 +1,715 @@
+import numpy as np
+from copy import deepcopy
+
+"""
+=============================================================================
+    Eindhoven University of Technology
+==============================================================================
+
+    Source Name   : Hugo-Thelosen-1257218.py
+                    Use underscores '_' when your first/last name consists out
+                    of multiple parts.
+                    e.g.
+                        Tim-de_Jong-0123456.py
+                        Pieter-Jansen-2589631.py
+    Author        : Quinten Swaan and Hugo Thelosen
+    Date          : 31-05-2021
+
+==============================================================================
+"""
+
+"""
+==============================================================================
+                        Assignment optimization
+==============================================================================
+1.  Fill in your personal details at the top of the script and adjust the name
+    of the script to specified format.
+
+2.  Complete the __init__() and reset_weights() functions.
+
+3.  Complete the specify_optimizer() and optimize_weights() functions.
+
+4.  Complete the functions corresponding to the optimization algorithms:
+    "SGD", "SGDmomentum", "AdaGrad", "RMSprop", "Adam"
+
+5.  Complete regularizer function.
+
+Keep the following points in mind:
+    - Do not import additional libraries besides numpy.
+    - Do not create additional functions in this script.
+    - Do not change the names of the functions or their input/output arguments.
+    - You are highly encouraged to test your script using a toy example.
+"""
+
+# import libraries
+
+
+"""
+==============================================================================
+                        Optimization algorithms
+==============================================================================
+"""
+
+
+def regularizer(gradients, theta, regtype, reglambda):
+    """
+    This function updates the gradients as calculated by the backpropagation
+    algorithm by adding a regularization term.
+
+    Input:  gradients -     Dictionary containing all current gradients of
+                            weights "w" and biases "b" of the network.
+                            The naming convention is from "w1" or "b1"
+                            up to and including "dJ_dw{depth}" or
+                            "dJ_db{depth}", without brackets.
+            theta -         Dictionary containing all current estimated
+                            weights "w" and biases "b" of the network.
+                            The naming convention is from "w1" or "b1"
+                            up to and including "w{depth}" or
+                            "b{depth}", without brackets.
+            regtype -       String containing the type of regularization. This
+                            can be one of the following types:
+                            "none", "l1", "l2"
+            reglambda -     Regularization parameter.
+
+    Output: gradientsreg -  Dictionary containing all regularized gradients of
+                            weights "w" and biases "b" of the network.
+                            The naming convention is from "w1" or "b1"
+                            up to and including "dJ_dw{depth}" or
+                            "dJ_db{depth}", without brackets.
+    """
+
+    # copy gradients dictionary to a new dictionary gradientsreg, which will
+    # be adopted according to the chosen regularization. (keep in mind that
+    # copying dictionaries is not the same as copying variables! Use the
+    # imported deepcopy function for this purpose)
+    gradientsreg = deepcopy(gradients)
+
+    # check if regularization type is "l1"
+    if regtype == "l1":
+
+        # loop through gradients
+        for key in range(1, int(len(gradients) / 2)):
+            # update regularized gradients
+            gradientsreg["dJ_dw" + str(key)] = gradients["dJ_dw" + str(key)] + reglambda*(theta["w" + str(key)] / abs(theta["w" + str(key)]))
+            gradientsreg["dJ_db" + str(key)] = gradients["dJ_db" + str(key)] + reglambda*(theta["b" + str(key)] / abs(theta["b" + str(key)]))
+
+    # check if regularization type is "l2
+    elif regtype == "l2":
+
+        # loop through gradients
+        for key in range(1, int(len(gradients) / 2)):
+            # update regularized gradients
+            gradientsreg["dJ_dw" + str(key)] = gradients["dJ_dw" + str(key)] + reglambda*theta["w" + str(key)]
+            gradientsreg["dJ_db" + str(key)] = gradients["dJ_db" + str(key)] + reglambda*theta["b" + str(key)]
+
+    return gradientsreg
+
+
+class optimizer():
+    """
+    The optimizer class can be regarded as an object which contains both data
+    and functions. The data of this class can be accessed using the dot
+    notation (optimizer.variable) and the function similarly as
+    (optimizer.function()). Within the functions of the class, internal
+    variables and functions can be accessed from the self object.
+
+    This class will save a copy of the initial parameters, the current
+    parameters and can deal with updating the parameters using the accompanied
+    backpropagation function.
+    """
+
+    def __init__(self, theta_init, depth):
+        """
+        The __init__() function is called when a class is initialized in a
+        script. Calling 'opt = optimizer(theta_init, depth)' will create the
+        optimizer class called 'opt'. The self variable (refering to the
+        class itself) does not need to be supplied, but can be accessed in
+        the internal functions.
+
+        This init function requires the initial parameter values of the Dense
+        layers and the depth of the network.
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                theta_init -    Dictionary containing all initial weights "w"
+                                and biases "b" of the network. The naming
+                                convention is from "w1" or "b1" up to and
+                                including "w{depth}" or "b{depth}", without
+                                brackets.
+                depth -         Integer denoting the depth of the network. An
+                                additional depth of 1 results in 1 additional
+                                Dense layer consecutively 1 additional ReLU
+                                layer. The last Dense layer does not have an
+                                activation function.
+
+        Output: self.depth -        Integer denoting the depth of the network.
+                                    An additional depth of 1 results in 1
+                                    additional Dense layer consecutively 1
+                                    additional ReLU layer. The last Dense layer
+                                    does not have an activation function.
+                self.theta_init -   Dictionary containing all initial weights
+                                    "w" and biases "b" of the network. The
+                                    naming convention is from "w1" or "b1" up
+                                    to and including "w{depth}" or "b{depth}",
+                                    without brackets.
+                self.theta -        Dictionary containing all current estimated
+                                    weights "w" and biases "b" of the network.
+                                    The naming convention is from "w1" or "b1"
+                                    up to and including "w{depth}" or
+                                    "b{depth}", without brackets. This variable
+                                    should be initialized with the initial
+                                    weights of the network.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # create the class variable depth by copying the same passed input
+        # variable
+        self.depth = depth
+
+        # create the class variable theta_init by copying the same passed
+        # input argument (keep in mind that copying dictionaries is not the
+        # same as copying variables! Use the imported deepcopy
+        # function for this purpose)
+        self.theta_init = theta_init
+
+        # create the class variable theta by initializing it with the initial
+        # passed values of theta_init (keep in mind that copying dictionaries
+        # is not the same as copying variables! Use the imported deepcopy
+        # function for this purpose)
+        self.theta = theta_init
+
+    def reset_weights(self):
+        """
+        Resets the dictionary containing the weights of the model to the
+        initial weights as specified during the creation of the class.
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+
+        Output: self.theta -        Dictionary containing all current estimated
+                                    weights "w" and biases "b" of the network.
+                                    The naming convention is from "w1" or "b1"
+                                    up to and including "w{depth}" or
+                                    "b{depth}", without brackets. This variable
+                                    should be initialized with the initial
+                                    weights of the network.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the object itself.
+        """
+
+        # reset the dictionary containing the model weights by resetting them
+        # to the initial values. (Hint: recall that self.theta_init contains
+        # the initial model weights)
+        self.theta = self.theta_init
+
+    def specify_optimizer(self, algorithm, parameters):
+        """
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                algorithm -     String specifying one of the optimization
+                                algorithms. This supplied string should be
+                                specified as one of the following:
+                                {"SGD", "SGDmomentum", "AdaGrad", "RMSprop",
+                                 "Adam"}
+                parameters -    Dictionary with hyperparameters depending on
+                                optimization algorithm. The entries consist
+                                out of a string specifying the hyperparameter
+                                and its corresponding value. The required
+                                hyperparameters per optimization algorithm are:
+                                SGD -           "lr" -      learning rate
+                                SGDmomentum -   "lr" -      learning rate
+                                                "rho" -     forgetting factor
+                                AdaGrad -       "lr" -      learning rate
+                                RMSprop -       "lr" -      learning rate
+                                                "rho" -     forgetting factor
+                                Adam -          "lr" -      learning rate
+                                                "rho1" -    forgetting factor
+                                                            first moment
+                                                "rho2" -    forgetting factor
+                                                            second moment
+
+        Output: self.algorithm -    String specifying one of the optimization
+                                    algorithms. This supplied string should be
+                                    specified as one of the following:
+                                    {"SGD", "SGDmomentum", "AdaGrad",
+                                     "RMSprop", "Adam"}
+                self.parameters -   Dictionary with hyperparameters depending
+                                    on optimization algorithm. The entries
+                                    consist out of a string specifying the
+                                    hyperparameter and its corresponding value.
+                                    The required hyperparameters per
+                                    optimization algorithm are:
+                                SGD -           "lr" -      learning rate
+                                SGDmomentum -   "lr" -      learning rate
+                                                "rho" -     forgetting factor
+                                AdaGrad -       "lr" -      learning rate
+                                                "delta" -   small constant to
+                                                            prevent division
+                                                            by zero
+                                RMSprop -       "lr" -      learning rate
+                                                "rho" -     forgetting factor
+                                                "delta" -   small constant to
+                                                            prevent division
+                                                            by zero
+                                Adam -          "lr" -      learning rate
+                                                "rho1" -    forgetting factor
+                                                            first moment
+                                                "rho2" -    forgetting factor
+                                                            second moment
+                                                "delta" -   small constant to
+                                                            prevent division
+                                                            by zero
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # create the class variable 'algorithm' specifying the algorithm used
+        # as a string
+        self.algorithm = algorithm
+
+        # create the class variable 'parameters' containing the dictionary with
+        # hyperparameters passed to function (keep in mind that copying
+        # dictionaries is not the same as copying variables! Use the imported
+        # deepcopy function for this purpose)
+        self.parameters = deepcopy(parameters)
+
+    def optimize_weights(self, gradients, momentum):
+        """
+        Calls the function specified by the algorithm to optimize the weights.
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                gradients -     Dictionary containing all current gradients of
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1"
+                                up to and including "dJ_dw{depth}" or
+                                "dJ_db{depth}", without brackets.
+
+        Output: self.theta -        Dictionary containing all current estimated
+                                    weights "w" and biases "b" of the network.
+                                    The naming convention is from "w1" or "b1"
+                                    up to and including "w{depth}" or
+                                    "b{depth}", without brackets.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # create an if-elif-...-else statement where the self.algorithm
+        # variable is compared against all of its possible values {"SGD",
+        # "SGDmomentum", "AdaGrad", "RMSprop", "Adam"} and calls the
+        # corresponding optimizer function as defined below.
+
+        # check if the specified algorithm is "SGD"
+        if self.algorithm == "SGD":
+
+            # call the "SGD" optimizer
+            self.SGD(gradients)
+
+        # check if the specified algorithm is "SGDmomentum"
+        elif self.algorithm == "SGDmomentum":
+
+            # call the "SGDmomentum" optimizer
+            self.SGDmomentum(gradients, momentum)
+
+        # check if the specified algorithm is "AdaGrad"
+        elif self.algorithm == "AdaGrad":
+
+            # call the "AdaGrad" optimizer
+            self.AdaGrad(gradients)
+
+        # check if the specified algorithm is "RMSprop"
+        elif self.algorithm == "RMSprop":
+
+            # call the "RMSprop" optimizer
+            self.RMSprop(gradients)
+
+        # check if the specified algorithm is "Adam"
+        elif self.algorithm == "Adam":
+
+            # call the "Adam" optimizer
+            self.Adam(gradients)
+
+    def SGD(self, gradients):
+        """
+        Calls the steepest gradient descent optimization algorithm.
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                gradients -     Dictionary containing all current gradients of
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1"
+                                up to and including "dJ_dw{depth}" or
+                                "dJ_db{depth}", without brackets.
+
+        Output: self.theta -    Dictionary containing all current estimated
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1" up
+                                to and including "w{depth}" or "b{depth}",
+                                without brackets.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # loop throught the dictionary of weigths
+        for key in range(1, int(len(self.theta) / 2)+1):
+            # update weights (access the hyperparameters, e.g. learning rate,
+            # through the specified 'self.parameters')
+            lr = self.parameters["lr"]
+
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - lr * gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - lr * gradients["dJ_db" + str(key)]
+
+    def SGDmomentum(self, gradients, momentum):
+        """
+        Calls the steepest gradient descent optimization algorithm with
+        momentum.
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                gradients -     Dictionary containing all current gradients of
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "dJ_dw1" or
+                                "dJ_b1" up to and including "dJ_dw{depth}" or
+                                "dJ_db{depth}", without brackets.
+
+        Output: self.theta -    Dictionary containing all current estimated
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1" up
+                                to and including "w{depth}" or "b{depth}",
+                                without brackets.
+                self.acc1 -     Dictionary containing the accumulated first
+                                order moment of weights "w" and biases "b" of
+                                the network. The naming convention is
+                                similar to the weights dictionary and the
+                                keys start from "w1" or "b1" up to and
+                                including "w{depth}" or "b{depth}",
+                                without brackets.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # check if the variable 'self.acc1' exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        rho = self.parameters["rho"]
+        lr = self.parameters["lr"]
+        if not hasattr(self, 'acc1'):
+
+            # create the dict 'self.acc1' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.acc1 = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.acc1["w" + str(key)] = 0
+                self.acc1["b" + str(key)] = 0
+
+        # loop throught the dictionary of weigths
+        for key in range(1, int(len(self.theta) / 2)+1):
+            # update accumulated first order moment (access the
+            # hyperparameters, e.g. learning rate, through the specified
+            # 'self.parameters')
+            if not momentum == 0:
+                self.acc1["w" + str(key)] = rho * momentum["dJ_dw" + str(key)] + gradients["dJ_dw" + str(key)]
+                self.acc1["b" + str(key)] = rho * momentum["dJ_db" + str(key)] + gradients["dJ_db" + str(key)]
+            else:
+                self.acc1["w" + str(key)] = gradients["dJ_dw" + str(key)]
+                self.acc1["b" + str(key)] = gradients["dJ_db" + str(key)]
+            # update weights (access the hyperparameters, e.g. learning rate,
+            # through the specified 'self.parameters')
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - lr * self.acc1["w" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - lr * self.acc1["b" + str(key)]
+
+    def AdaGrad(self, gradients):
+        """
+        Calls the Adagrad optimization algorithm
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                gradients -     Dictionary containing all current gradients of
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "dJ_dw1" or
+                                "dJ_b1" up to and including "dJ_dw{depth}" or
+                                "dJ_db{depth}", without brackets.
+
+        Output: self.theta -    Dictionary containing all current estimated
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1" up
+                                to and including "w{depth}" or "b{depth}",
+                                without brackets.
+                self.accs1 -    Dictionary containing the accumulated squared
+                                first order moment of weights "w" and biases
+                                "b" of the network. The naming convention is
+                                similar to the weights dictionary and the
+                                keys start from "w1" or "b1" up to and
+                                including "w{depth}" or "b{depth}",
+                                without brackets.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # check if the variable 'self.accs1' exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        if not hasattr(self, 'accs1'):
+
+            # create the dict 'self.accs1' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.accs1 = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.accs1["w" + str(key)] = 0
+                self.accs1["b" + str(key)] = 0
+
+        # loop throught the dictionary of weigths
+        for key in range(1, int(len(self.theta) / 2)+1):
+            # update accumulated squared first order moment
+            self.accs1["w" + str(key)] = self.accs1["w" + str(key)] + gradients["dJ_dw" + str(key)] * gradients[
+                "dJ_dw" + str(key)]
+            self.accs1["b" + str(key)] = self.accs1["b" + str(key)] + gradients["dJ_db" + str(key)] * gradients[
+                "dJ_db" + str(key)]
+            # update weights (access the hyperparameters, e.g. learning rate,
+            # through the specified 'self.parameters')
+            lr = self.parameters["lr"]
+            delta = self.parameters["delta"]
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) * gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) * gradients["dJ_db" + str(key)]
+
+    def RMSprop(self, gradients):
+        """
+        Calls the RMSprop optimization algorithm
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                gradients -     Dictionary containing all current gradients of
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "dJ_dw1" or
+                                "dJ_b1" up to and including "dJ_dw{depth}" or
+                                "dJ_db{depth}", without brackets.
+
+        Output: self.theta -    Dictionary containing all current estimated
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1" up
+                                to and including "w{depth}" or "b{depth}",
+                                without brackets.
+                self.accs1 -    Dictionary containing the accumulated squared
+                                first order moment of weights "w" and biases
+                                "b" of the network. The naming convention is
+                                similar to the weights dictionary and the
+                                keys start from "w1" or "b1" up to and
+                                including "w{depth}" or "b{depth}",
+                                without brackets.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # check if the variable 'self.accs1' exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        if not hasattr(self, 'accs1'):
+
+            # create the dict 'self.accs1' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.accs1 = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.accs1["w" + str(key)] = 0
+                self.accs1["b" + str(key)] = 0
+
+        # loop throught the dictionary of weigths
+        for key in range(1, int(len(self.theta) / 2)+1):
+            # update accumulated squared first order moment
+            rho = self.parameters["rho"]
+            self.accs1["w" + str(key)] = rho * self.accs1["w" + str(key)] + (1 - rho) * gradients["dJ_dw" + str(key)] * gradients["dJ_dw" + str(key)]
+            self.accs1["b" + str(key)] = rho * self.accs1["b" + str(key)] + (1 - rho) * gradients["dJ_db" + str(key)] * gradients["dJ_db" + str(key)]
+
+            # update weights (access the hyperparameters, e.g. learning rate,
+            # through the specified 'self.parameters')
+            lr = self.parameters["lr"]
+            delta = self.parameters["delta"]
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - (lr/(delta+self.accs1["w" + str(key)]**0.5)) * gradients["dJ_dw" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - (lr/(delta+self.accs1["b" + str(key)]**0.5)) * gradients["dJ_db" + str(key)]
+
+    def Adam(self, gradients):
+        """
+        Calls the Adam optimization algorithm
+
+        Input:  self -          The class itself. This variable is required in
+                                the function definition, but should not be
+                                supplied when calling the function.
+                gradients -     Dictionary containing all current gradients of
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "dJ_dw1" or
+                                "dJ_b1" up to and including "dJ_dw{depth}" or
+                                "dJ_db{depth}", without brackets.
+
+        Output: self.theta -    Dictionary containing all current estimated
+                                weights "w" and biases "b" of the network.
+                                The naming convention is from "w1" or "b1" up
+                                to and including "w{depth}" or "b{depth}",
+                                without brackets.
+                self.acc1 -     Dictionary containing the accumulated
+                                first order moment of weights "w" and biases
+                                "b" of the network. The naming convention is
+                                similar to the weights dictionary and the
+                                keys start from "w1" or "b1" up to and
+                                including "w{depth}" or "b{depth}",
+                                without brackets.
+                self.acc1b -    Dictionary containing the bias corrected
+                                accumulated first order moment of weights "w"
+                                and biases "b" of the network. The naming
+                                convention is similar to the weights
+                                dictionary and the keys start from "w1" or
+                                "b1" up to and including "w{depth}" or
+                                "b{depth}", without brackets.
+                self.acc2 -     Dictionary containing the accumulated
+                                second order moment of weights "w" and biases
+                                "b" of the network. The naming convention is
+                                similar to the weights dictionary and the
+                                keys start from "w1" or "b1" up to and
+                                including "w{depth}" or "b{depth}",
+                                without brackets.
+                self.acc2b -    Dictionary containing the bias corrected
+                                accumulated second order moment of weights "w"
+                                and biases "b" of the network. The naming
+                                convention is similar to the weights
+                                dictionary and the keys start from "w1" or
+                                "b1" up to and including "w{depth}" or
+                                "b{depth}", without brackets.
+                self.count -    Counter (integer) indicating the amount of
+                                updates performed.
+
+        Note:   self.variables should not be returned since they can be
+                accessed from the class itself.
+        """
+
+        # check if the variable 'self.acc1 exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        if not hasattr(self, 'acc1'):
+
+            # create the dict 'self.acc1' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.acc1 = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.acc1["w" + str(key)] = 0
+                self.acc1["b" + str(key)] = 0
+
+        # check if the variable 'self.acc2 exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        if not hasattr(self, 'acc2'):
+
+            # create the dict 'self.acc2' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.acc2 = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.acc2["w" + str(key)] = 0
+                self.acc2["b" + str(key)] = 0
+
+        # check if the variable 'self.acc1b exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        if not hasattr(self, 'acc1b'):
+
+            # create the dict 'self.acc1b' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.acc1b = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.acc1b["w" + str(key)] = 0
+                self.acc1b["b" + str(key)] = 0
+
+        # check if the variable 'self.acc2b exists, else create the variable
+        # as a dictionary with keys indentical to the weights dictionary, but
+        # with all values in the matrices set to 0.
+        if not hasattr(self, 'acc2b'):
+
+            # create the dict 'self.acc2b' with keys identical to the weights
+            # dictionary (keep in mind that copying dictionaries is not the
+            # same as copying variables! Use the imported deepcopy
+            # function for this purpose)
+            self.acc2b = deepcopy(self.theta)
+
+            # initialize all values to similarly sized matrices of zeros
+            for key in range(1, int(len(self.theta) / 2)+1):
+                self.acc2b["w" + str(key)] = 0
+                self.acc2b["b" + str(key)] = 0
+
+        # initialize 'self.count' to 1 if it does not exist, else update the
+        # counter by adding 1
+        if not hasattr(self, 'count'):
+            self.count = 1
+        else:
+            self.count = self.count + 1
+
+        rho1 = self.parameters["rho1"]
+        rho2 = self.parameters["rho2"]
+        delta = self.parameters["delta"]
+        lr = self.parameters["lr"]
+
+        # loop throught the dictionary of weigths
+        for key in range(1, int(len(self.theta) / 2)+1):
+            # update accumulated first order moment (access the
+            # hyperparameters, e.g. learning rate, through the specified
+            # 'self.parameters')
+            self.acc1["w" + str(key)] = rho1*self.acc1["w" + str(key)] + (1-rho1)*gradients["dJ_dw" + str(key)]
+            self.acc1["b" + str(key)] = rho1*self.acc1["b" + str(key)] + (1-rho1)*gradients["dJ_db" + str(key)]
+
+            # update accumulated first order moment (access the
+            # hyperparameters, e.g. learning rate, through the specified
+            # 'self.parameters')
+            self.acc2["w" + str(key)] = rho1*self.acc2["w" + str(key)] + (1-rho1)*gradients["dJ_dw" + str(key)] * gradients["dJ_dw" + str(key)]
+            self.acc2["b" + str(key)] = rho2*self.acc2["b" + str(key)] + (1-rho2)*gradients["dJ_db" + str(key)] * gradients["dJ_db" + str(key)]
+
+            # calcluate bias corrected first order moment (access the
+            # hyperparameters, e.g. learning rate, through the specified
+            # 'self.parameters')
+            self.acc1b["w" + str(key)] = self.acc1["w" + str(key)]/(1-rho1)
+            self.acc1b["b" + str(key)] = self.acc1["b" + str(key)]/(1-rho1)
+
+            # calculate bias corrected second order moment (access the
+            # hyperparameters, e.g. learning rate, through the specified
+            # 'self.parameters')
+            self.acc2b["w" + str(key)] = self.acc2["w" + str(key)]/(1-rho2)
+            self.acc2b["b" + str(key)] = self.acc2["b" + str(key)]/(1-rho2)
+
+            # update weights (access the hyperparameters, e.g. learning rate,
+            # through the specified 'self.parameters')
+            self.theta["w" + str(key)] = self.theta["w" + str(key)] - lr/(delta + self.acc2b["w" + str(key)]**0.5) * self.acc1b["w" + str(key)]
+            self.theta["b" + str(key)] = self.theta["b" + str(key)] - lr/(delta + self.acc2b["b" + str(key)]**0.5) * self.acc1b["b" + str(key)]
