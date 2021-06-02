@@ -15,7 +15,7 @@ from collections import defaultdict
 
 import numpy as np
 import matplotlib.pyplot as plt
-#from IPython.display import clear_output
+# from IPython.display import clear_output
 import math
 
 import tensorflow as tf
@@ -75,53 +75,96 @@ x_batches, y_batches, data_x_train, data_y_train, data_x_test, data_y_test = get
 
 
 def Encoder(input_shape):
+    print(input_shape)
     x = Conv2D(16, (3, 3), activation='relu', padding='same')(input_shape)
-    x = MaxPooling2D((2, 2), padding='same')(x)
+    print(x.shape)
+    x = MaxPooling2D((2, 2))(x)
+    print(x.shape)
     x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 2), padding='same')(x)
+    print(x.shape)
+    x = MaxPooling2D((2, 2))(x)
+    print(x.shape)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    print(x.shape)
+    x = MaxPooling2D((2, 2))(x)
+    print(x.shape)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    print(x.shape)
+    x = MaxPooling2D((2, 2))(x)
+    print(x.shape)
     x = Conv2D(1, (3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling2D((2, 1), padding='same')(x)
-    return x
+    print(x.shape)
+    encode = MaxPooling2D((2, 1))(x)
+    print(encode.shape)
+    return encode
+
 
 def Decoder(input_shape):
-    x = Conv2D(1, (3, 3), activation='relu', padding='same')(input_shape)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(16, (3, 3), activation='relu')(x)
+    print(input_shape)
+    x = Conv2DTranspose(16, (3, 3), activation='relu', padding='same')(input_shape)
+    print(x.shape)
     x = UpSampling2D((2, 1))(x)
-    x = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
-    return x
+    print(x.shape)
+    x = Conv2DTranspose(16, (3, 3), activation='relu', padding='same')(x)
+    print(x.shape)
+    x = UpSampling2D((2, 2))(x)
+    print(x.shape)
+    x = Conv2DTranspose(16, (3, 3), activation='relu', padding='same')(x)
+    print(x.shape)
+    x = UpSampling2D((2, 2))(x)
+    print(x.shape)
+    x = Conv2DTranspose(16, (3, 3), activation='relu', padding='same')(x)
+    print(x.shape)
+    x = UpSampling2D((2, 2))(x)
+    print(x.shape)
+    x = Conv2DTranspose(16, (3, 3), activation='relu', padding='same')(x)
+    print(x.shape)
+    x = UpSampling2D((2, 2))(x)
+    print(x.shape)
+    decode = Conv2DTranspose(1, (3, 3), activation='relu', padding='same')(x)
+    print(decode.shape)
+    return decode
 
 
 """
 Create models    
 """
 input_shape = x_batches.shape[2:]
-#encoder = Encoder(input_shape)
-#input_shape = encoder.shape[1:]
-#decoder = Decoder(encoder)
 
-#input_shape = x_batches.shape[2:]
 inputs = Input(input_shape)
 encoded = Encoder(inputs)
 decoded = Decoder(encoded)
 model = tf.keras.Model(inputs=inputs, outputs=decoded)
 
-model.compile('adam', loss= MSE)
-#model.compile('adam', loss=lambda yt, yp: MSE(inputs, decoded))
+model.compile('adam', loss=MSE)
 
 """
 Train model or load weights of previously trained model
 """
 
-# model.load_weights("AE_20200519.h5")
-# for epoch in range(args['epochs']):
-#    print("epoch: ",epoch)
-#    for batch in x_batches:
-
-model.fit(data_x_train, data_y_train,
+model.fit(data_x_train, data_x_train,
           epochs=10,
           batch_size=64,
           shuffle=True,
-          validation_data=(data_x_test, data_y_test))
+          validation_data=(data_x_test, data_x_test))
+
+decoded_imgs = model.predict(x_batches[0, 0:10])
+
+n = 10  # How many digits we will display
+plt.figure(figsize=(20, 4))
+for i in range(n):
+    # Display original
+    ax = plt.subplot(2, n, i + 1)
+    plt.imshow(x_batches[0, i])
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+
+    # Display reconstruction
+    ax = plt.subplot(2, n, i + 1 + n)
+    plt.imshow(decoded_imgs[i])
+    plt.gray()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    plt.savefig("autoencoder_reconstruction.png")
+plt.show()
